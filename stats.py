@@ -8,6 +8,9 @@ from sklearn.linear_model import Ridge, RidgeCV, BayesianRidge, ElasticNet, Lass
 
 from scipy.spatial.distance import pdist
 
+from sklearn.metrics import mean_squared_error
+from math import sqrt
+
 
 model_dict = {'ridge' : {'m': Ridge, 'kw': {'fit_intercept': True, 'alpha': 0.1}},
               'rcv':  {'m': RidgeCV, 'kw': {'cv': 5}},
@@ -67,12 +70,17 @@ def regress(response, pred_list, one=False, do_print=True):
     :param do_print:
     :return:
     """
-
     regr = LM.LinearRegression(fit_intercept=one)
     regr.fit(np.asarray(pred_list).swapaxes(0, 1), response)
 
     presp = regr.predict(np.asarray(pred_list).swapaxes(0, 1))
     r2 = r2_score(response, presp)
+    r2_mean_model = r2_score(response, np.repeat(np.mean(response),len(response)))
+    #print(response[0:10])
+    #print(np.ndarray.flatten(np.asarray(pred_list))[0:10])
+    #print("\n")
+    rmse = sqrt(mean_squared_error( response, np.ndarray.flatten(np.asarray(pred_list)) ))
+    rmse_mean_model = sqrt(mean_squared_error( response, np.repeat(np.mean(response), len(response) )))
     if do_print:
         if one:
             rs = ('%6.4f ' * (len(pred_list) + 1)) % (tuple(regr.coef_) + (regr.intercept_,))
@@ -80,8 +88,12 @@ def regress(response, pred_list, one=False, do_print=True):
             rs = ('%6.4f ' * (len(pred_list)) % tuple(regr.coef_))
         print ('Coeffs:       ' + rs)
         print ('R-squared: {:9.4f}'.format(r2))
+        print ('RMSE: {:9.4f}'.format(rmse))
+        print ('R-squared mean model: {:9.4f}'.format(r2_mean_model))
+        print ('RMSE mean model: {:9.4f}'.format(rmse_mean_model))
+        #return regr.coef_, r2, rmse, r2_mean_model, rmse_mean_model
     else:
-        return regr.coef_, r2
+        return regr.coef_, r2, rmse, r2_mean_model, rmse_mean_model
 
 
 def run_suite(df, v, typ='df', adjust=None, label=None, add_pred=None):
@@ -129,7 +141,7 @@ def run_suite(df, v, typ='df', adjust=None, label=None, add_pred=None):
     print('\n')
 
 
-def full_bootstrap(preds, resps, method, num_runs=40, adjust=None):
+def full_bootstrap(preds, resps, method, num_runs=10, adjust=None):
     """
 
     :param preds:
@@ -141,6 +153,9 @@ def full_bootstrap(preds, resps, method, num_runs=40, adjust=None):
     """
     r_2s = []
     betas = []
+    rmses = []
+    r_2s_mean_model = []
+    rmses_mean_model =[]
 
     N = len(resps)
     for i in range(num_runs):
@@ -150,25 +165,37 @@ def full_bootstrap(preds, resps, method, num_runs=40, adjust=None):
         mdl = model_dict[method]['m'](**model_dict[method]['kw'])
         mdl.fit(preds[idcs], resps[idcs])
         if adjust is None:
-            beta, r2 = regress(resps[oos], [mdl.predict(preds[oos]), ], do_print=False, one=False)
+            beta, r2, rmse, r2_mean_model, rmse_mean_model = regress(resps[oos], [mdl.predict(preds[oos]), ], do_print=False, one=False)
         else:
-            beta, r2 = regress(resps[oos] + adjust[oos],
+            beta, r2, rmse, r2_mean_model, rmse_mean_model = regress(resps[oos] + adjust[oos],
                                [mdl.predict(preds[oos]) + adjust[oos], ], do_print=False, one=False)
         if beta < 0:
             r2 *= -1
             pass
         r_2s.append(r2)
+        rmses.append(rmse)
+        r_2s_mean_model.append(r2_mean_model)
+        rmses_mean_model.append(rmse_mean_model)
         betas.append(beta)
         pass
 
     r_2s = np.asarray(r_2s)
+    rmses = np.asarray(rmses)
     betas = np.asarray(betas)
+    rmses_mean_model = np.asarray(rmses_mean_model)
+    r_2s_mean_model = np.asarray(r_2s_mean_model)
 
     print ('Beta:         %9.3f [%8.3f %8.3f] %s' %
            (np.mean(betas), np.percentile(betas, 5), np.percentile(betas, 95), method))
     print ('R2 (signed):  %9.3f [%8.3f %8.3f] at 5pct conf' %
            (np.mean(r_2s), np.percentile(r_2s, 5), np.percentile(r_2s, 95)))
+    print ('RMSE:  %9.3f [%8.3f %8.3f] at 5pct conf' %
+           (np.mean(rmses), np.percentile(rmses, 5), np.percentile(rmses, 95)))
 
+    print ('R2 mean model (signed):  %9.3f [%8.3f %8.3f] at 5pct conf' %
+           (np.mean(r_2s_mean_model), np.percentile(r_2s_mean_model, 5), np.percentile(r_2s_mean_model, 95)))
+    print ('RMSE mean model:  %9.3f [%8.3f %8.3f] at 5pct conf' %
+           (np.mean(rmses_mean_model), np.percentile(rmses_mean_model, 5), np.percentile(rmses_mean_model, 95)))
 
 def binner(df, bin_label, sample_size=900, num_bins=5):
     """
