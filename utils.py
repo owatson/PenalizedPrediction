@@ -142,7 +142,7 @@ def get_canonical_smile(x):
     except Exception:
         return 'None'
     
-def get_fp(sm, logfail=False, hashed=False):
+def get_fp(sm, logfail=False, countfp=False, fpsize=1024):
     """
 
     :param sm:
@@ -151,18 +151,18 @@ def get_fp(sm, logfail=False, hashed=False):
     :return: boolean fingerprint or uint16 hashed fingerprint
     """
     try:
-        if hashed:
-            fp = np.array(list(GetHashedMorganFingerprint(Chem.MolFromSmiles(sm),2,nBits=128)), dtype=np.uint16)
+        if countfp:
+            fp = np.array(list(GetHashedMorganFingerprint(Chem.MolFromSmiles(sm),2,nBits=fpsize)), dtype=np.uint16)
         else:
-            fp = AllChem.GetMorganFingerprintAsBitVect(Chem.MolFromSmiles(sm),2,nBits=128) 
+            fp = AllChem.GetMorganFingerprintAsBitVect(Chem.MolFromSmiles(sm),2,nBits=fpsize) 
     except:
         if logfail:
             print("Cannot extract Mol from %s" % sm)
             pass
-        if hashed:
-            fp = np.zeros(128, dtype=np.uint16)
+        if countfp:
+            fp = np.zeros(fpsize, dtype=np.uint16)
         else:
-            fp = np.zeros(128, dtype=bool)
+            fp = np.zeros(fpsize, dtype=bool)
             pass
         pass
     return fp
