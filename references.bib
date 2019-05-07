@@ -1,9 +1,63 @@
+@article{koutsoukas_2013,
+abstract = {In this study, two probabilistic machine-learning algorithms were compared for in silico target prediction of bioactive molecules, namely the well-established Laplacian-modified Na{\"{i}}ve Bayes classifier ({\{}NB){\}} and the more recently introduced (to Cheminformatics) Parzen-Rosenblatt Window. Both classifiers were trained in conjunction with circular fingerprints on a large data set of bioactive compounds extracted from {\{}ChEMBL{\}}, covering 894 human protein targets with more than 155,000 ligand-protein pairs. This data set is also provided as a benchmark data set for future target prediction methods due to its size as well as the number of bioactivity classes it contains. In addition to evaluating the methods, different performance measures were explored. This is not as straightforward as in binary classification settings, due to the number of classes, the possibility of multiple class memberships, and the need to translate model scores into ?yes/no? predictions for assessing model performance. Both algorithms achieved a recall of correct targets that exceeds 80{\%} in the top 1{\%} of predictions. Performance depends significantly on the underlying diversity and size of a given class of bioactive compounds, with small classes and low structural similarity affecting both algorithms to different degrees. When tested on an external test set extracted from {\{}WOMBAT{\}} covering more than 500 targets by excluding all compounds with Tanimoto similarity above 0.8 to compounds from the {\{}ChEMBL{\}} data set, the current methodologies achieved a recall of 63.3{\%} and 66.6{\%} among the top 1{\%} for Na{\"{i}}ve Bayes and Parzen-Rosenblatt Window, respectively. While those numbers seem to indicate lower performance, they are also more realistic for settings where protein targets need to be established for novel chemical substances.},
+author = {Koutsoukas, Alexios and Lowe, Robert and KalantarMotamedi, Yasaman and Mussa, Hamse Y and Klaffke, Werner and Mitchell, John BO O and Glen, Robert C and Bender, Andreas},
+doi = {10.1021/ci300435j},
+issn = {1549-9596},
+journal = {J. Chem. Inf. Model.},
+number = {8},
+pages = {1957--1966},
+shorttitle = {In Silico Target Predictions},
+title = {{In Silico Target Predictions: Defining a Benchmarking Data Set and Comparison of Performance of the Multiclass Na{\"{i}}ve Bayes and Parzen-Rosenblatt Window}},
+url = {http://dx.doi.org/10.1021/ci300435j},
+volume = {53},
+year = {2013}
+}
+
+@article{Alexander2015,
+abstract = {The statistical metrics used to characterize the external predictivity of a model, i.e., how well it predicts the properties of an independent test set, have proliferated over the past decade. This paper clarifies some apparent confusion over the use of the coefficient of determination, R(2), as a measure of model fit and predictive power in QSAR and QSPR modeling. R(2) (or r(2)) has been used in various contexts in the literature in conjunction with training and test data for both ordinary linear regression and regression through the origin as well as with linear and nonlinear regression models. We analyze the widely adopted model fit criteria suggested by Golbraikh and Tropsha ( J. Mol. Graphics Modell. 2002 , 20 , 269 - 276 ) in a strict statistical manner. Shortcomings in these criteria are identified, and a clearer and simpler alternative method to characterize model predictivity is provided. The intent is not to repeat the well-documented arguments for model validation using test data but rather to guide the application of R(2) as a model fit statistic. Examples are used to illustrate both correct and incorrect uses of R(2). Reporting the root-mean-square error or equivalent measures of dispersion, which are typically of more practical importance than R(2), is also encouraged, and important challenges in addressing the needs of different categories of users such as computational chemists, experimental scientists, and regulatory decision support specialists are outlined.},
+author = {Alexander, D. L.J. and Tropsha, A. and Winkler, David A.},
+journal = {Journal of Chemical Information and Modeling},
+number = {7},
+pages = {1316--1322},
+title = {{Beware of R2: Simple, Unambiguous Assessment of the Prediction Accuracy of QSAR and QSPR Models}},
+url = {http://pubs.acs.org/doi/10.1021/acs.jcim.5b00206},
+volume = {55},
+year = {2015}
+}
+
+@article{Wallach2018,
+abstract = {Undetected overfitting can occur when there are significant redundancies between training and validation data. We describe AVE, a new measure of training–validation redundancy for ligand-based classification problems, that accounts for the similarity among inactive molecules as well as active ones. We investigated seven widely used benchmarks for virtual screening and classification, and we show that the amount of AVE bias strongly correlates with the performance of ligand-based predictive methods irrespective of the predicted property, chemical fingerprint, similarity measure, or previously applied unbiasing techniques. Therefore, it may be the case that the previously reported performance of most ligand-based methods can be explained by overfitting to benchmarks rather than good prospective accuracy.},
+author = {Wallach, Izhar and Heifets, Abraham},
+journal = {Journal of Chemical Information and Modeling},
+pages = {acs.jcim.7b00403},
+publisher = {American Chemical Society},
+title = {{Most Ligand-Based Classification Benchmarks Reward Memorization Rather than Generalization}},
+url = {http://pubs.acs.org/doi/10.1021/acs.jcim.7b00403},
+year = {2018}
+}
+
+@article{Gamo2010,
+abstract = {Malaria is a devastating infection caused by protozoa of the genus Plasmodium. Drug resistance is widespread, no new chemical class of antimalarials has been introduced into clinical practice since 1996 and there is a recent rise of parasite strains with reduced sensitivity to the newest drugs. We screened nearly 2 million compounds in GlaxoSmithKline's chemical library for inhibitors of P. falciparum, of which 13,533 were confirmed to inhibit parasite growth by at least 80{\%} at 2 microM concentration. More than 8,000 also showed potent activity against the multidrug resistant strain Dd2. Most (82{\%}) compounds originate from internal company projects and are new to the malaria community. Analyses using historic assay data suggest several novel mechanisms of antimalarial action, such as inhibition of protein kinases and host-pathogen interaction related targets. Chemical structures and associated data are hereby made public to encourage additional drug lead identification efforts and further research into this disease.},
+author = {Gamo, Francisco Javier and Sanz, Laura M. and Vidal, Jaume and {De Cozar}, Cristina and Alvarez, Emilio and Lavandera, Jose Luis and Vanderwall, Dana E. and Green, Darren V.S. and Kumar, Vinod and Hasan, Samiul and Brown, James R. and Peishoff, Catherine E. and Cardon, Lon R. and Garcia-Bustos, Jose F.},
+doi = {10.1038/nature09107},
+issn = {14764687},
+journal = {Nature},
+keywords = {Antiparasitic agents,Parasitology,Target identification},
+number = {7296},
+pages = {305--310},
+publisher = {Nature Publishing Group},
+title = {{Thousands of chemical starting points for antimalarial lead identification}},
+url = {http://www.nature.com/articles/nature09107},
+volume = {465},
+year = {2010}
+}
+
+
 @article{Fourches2010,
 author = {Fourches, Denis and Muratov, Eugene and Tropsha, Alexander},
 doi = {10.1021/ci100176x},
 issn = {1549-960X},
 journal = {Journal of chemical information and modeling},
-month = {jul},
 number = {7},
 pages = {1189--204},
 pmid = {20572635},
@@ -20,7 +74,6 @@ doi = {10.1186/s13321-016-0148-0},
 issn = {1758-2946},
 journal = {Journal of Cheminformatics},
 keywords = {Molecular fingerprints,Similarity benchmark,Similarity searching,Structural similarity},
-month = {dec},
 number = {1},
 pages = {36},
 pmid = {27382417},
@@ -45,10 +98,16 @@ year = {2019}
 abstract = {There is no doubt that papers published in the Journal of Chemical Information and Modeling, and related journals, provide valuable scientific information. However, it is often difficult to reproduce the work described in molecular modeling and cheminformatics papers. In many cases the software described in the paper is not readily available, in other cases the supporting information is not provided in an accessible format. To date, the major journals in the fields of molecular modeling and cheminformatics have not established guidelines for reproducible research. This letter provides an overview of the reproducibility challenges facing our field and suggests some guidelines for improving the reproducibility of published work.},
 author = {Walters, W Patrick},
 doi = {10.1021/ci400197w},
-title = {{Modeling, Informatics, and the Quest for Reproducibility}},
+issn = {15499596},
+journal = {Journal of Chemical Information and Modeling},
+number = {7},
+pages = {1529--1530},
+title = {{Modeling, informatics, and the quest for reproducibility}},
 url = {http://sourceforge.net/},
+volume = {53},
 year = {2013}
 }
+
 @article{Landrum2012,
 author = {Landrum, Gregory A and Stiefl, Nikolaus},
 doi = {10.4155/fmc.12.160},
@@ -380,13 +439,9 @@ year = {2016}
 
 @article{et0:,
 author = {Cortes-Ciriano, Isidro and Firth, Nicolas C. and Bender, Andreas and Watson, Oliver},
-doi = {10.1021/acs.jcim.8b00376},
-issn = {1549-9596},
 journal = {Journal of Chemical Information and Modeling},
-month = {sep},
 number = {9},
-pages = {2000--2014},
-pmid = {30130102},
+pages = {2000-2014},
 title = {{Discovering highly potent molecules from an initial set of inactives using iterative screening}},
 url = {http://pubs.acs.org/doi/10.1021/acs.jcim.8b00376},
 volume = {58},
@@ -397,5 +452,7 @@ year = {2018}
 @article{et1:, 
     title={A Decision Theoretic Approach to Model Evaluation in Computational Drug Discovery},
     author={Oliver Watson,  Isidro Cortes, Aimee Taylor, James Watson},
-    note={In revision},
+    journal={Bioinformatics},
+    volume={In press},
+    year={2019}
 }

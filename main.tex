@@ -1,26 +1,42 @@
-\documentclass{article}
+%\documentclass{article}
+\documentclass[journal=jacsat,manuscript=article]{achemso}
+\usepackage[version=3]{mhchem} % Formula subscripts using \ce{}
+
 \usepackage[utf8]{inputenc}
 \usepackage{fullpage}
 \usepackage{amssymb}
 \usepackage{amsmath}
 \usepackage{xcolor}
-\usepackage{authblk}
+%\usepackage{authblk}
+%\usepackage{natbib}
+\usepackage{graphicx}
+%\usepackage{hyperref}
+\setlength{\parindent}{0pt} 
+%\usepackage[style = chem-acs]{biblatex}
 
 %\title{Multi-parameter optimization and model extrapolation on malaria data}
 % ICC: 
-\title{Multi-parameter optimization and model extrapolation on/using antimalarial drug screening data}
-\author[1]{Oliver Watson}
-\author[2]{Isidro Cortés-Ciriano}
+
+
+%\author[1]{Oliver Watson}
+%\author[2]{Isidro Cortés-Ciriano}
 
 %Affiliations
-\affil[1]{Evariste Technologies Ltd}
-\affil[2]{Centre for Molecular Informatics, Department of Chemistry, University of Cambridge, Lensfield Road, Cambridge, CB2 1EW, United Kingdom.}
+%\affil[1]{Evariste Technologies Ltd}
+%\affil[2]{Centre for Molecular Informatics, Department of Chemistry, University of Cambridge, Lensfield Road, Cambridge, CB2 1EW, United Kingdom.}
 %\date{November 2018}
 
-\usepackage{natbib}
-\usepackage{graphicx}
-\usepackage{hyperref}
-\setlength{\parindent}{0pt} 
+\author{Oliver Watson}
+\affiliation[]{Evariste Technologies Ltd}
+\email{owatson79@evartech.co.uk}
+%\phone{}
+
+\author{Isidro Cortés-Ciriano}
+\affiliation[]{Centre for Molecular Informatics, Department of Chemistry, University of Cambridge, Lensfield Road, Cambridge, CB2 1EW, United Kingdom.}
+\email{isidrolauscher@gmail.com}
+%\phone{}
+
+\title{Multi-parameter optimization and model extrapolation using biased training data for antimalarial compound discovery}
 
 
 \begin{document}
@@ -30,29 +46,41 @@
 
 \maketitle
 
-\section{Abstract}
+\section*{Abstract}
 
 We demonstrate the applicability of certain quantitative techniques to address practical problems encountered in small molecule drug discovery.  Specifically we look at using machine learning techniques to predict variables of interest (activity, toxicity) from QSAR inputs, using mathematical and probabilistic arguments in order to build models on biased data (in our case, a dataset that only reports compounds that are active) that will nonetheless generalise to arbitrary datasets, and optimization methods that will maximise the likelihood of obtaining a compound with the desired features.  We use data from ChEMBL malaria assays to obtain values for potency against the malaria parasite \textit{Plasmodium Falciparum} and toxicity against the human HepG2 cell line.  We use data from a commercial vendor (Molport) to examine the predictions our models make on 
 molecules that are structurally  different from those on which they were fit. Altogether, we believe that this set of techniques represents a self-contained and systematic approach to the problem of selecting compounds for synthesis and testing in a hit-to-lead drug discovery project.
 \newpage
 
 
-\section{Introduction}
-\textcolor{red}{THE INTRO NEEDS MORE WORK}
+\section*{Introduction}
 A longstanding goal of artificial intelligence research is to construct algorithms 
 to aid in the design of new drugs \cite{Gawehn2016,Chen2018}. 
-Whereas deep learning has proved versatile in a number of drug discovery applications\cite{Chen2018}, 
-the large number of parameters that need to be optimized often hampers their generalization capabilities. Although multiple algorithms based on neural networks have been proposed to automatize most of the preclinical drug discovery steps, from the generation of structurally novel molecules showing drug-like properties\cite{Kang2018} to the prediction of {\it in vitro} potency and binding affinities\cite{Ozturk2018}, there is still a paucity of integrative and fully data-driven computational pipelines to propose candidate molecules for further experimental testing in an iterative fashion till molecules with the desired properties (e.g., highly potent in an {\it in vitro} biochemical assay and low cytotoxicity) are found.
+%Whereas machine learning models trained using preclinical data have proved %versatile in a number of drug discovery applications\cite{Chen2018}, 
+%the large number of parameters that need to be optimized often hampers their generalization capabilities. 
+To date, a plethora of machine learning algorithms have been proposed to automatize most of the preclinical drug discovery steps, from the generation of structurally novel molecules showing drug-like properties\cite{Kang2018} to the prediction of {\it in vitro} potency and binding affinities\cite{Ozturk2018}. However, there is still a paucity of integrative and fully data-driven computational pipelines to propose candidate molecules for further experimental testing in an iterative fashion till molecules with a set of desired properties (e.g., highly potent in an {\it in vitro} biochemical assay and low cytotoxicity) are found. 
 
-Here, we present a modelling framework based on a set of multi-parameter optimization algorithms to facilitate automated drug discovery.
-We use publicly available data on activity against the most common parasite responsible for malaria: \textit{Plasmodium falciparum}. Our choice was guided by the large amount of data for this particular target that is available in the public domain, and the specific objectives that are associated to a malaria project (for instance, finding drugs that are structurally very different from existing ones).  We discuss in depth two general problems that beset any attempt to use quantitative techniques to direct a drug discovery project: extrapolation and multi-parameter optimization.
+
+XXXXXXXX\cite{Wallach2018}
+%describe reasons why this is the case (lack of extrapolation, biased data sets, etc.. so we can link with the issues we address below.
+%Moreover, their limited extrapolation capability limits their application to discover structurally novel molecules. 
+
+
+Here, we present a modelling framework based on a set of multi-parameter optimization algorithms to discover structurally novel and active compounds 
+%facilitate automated drug discovery
+using as starting point a data set data set heavily biased towards active compounds.
+We use publicly available data on activity against the most common parasite responsible for malaria: \textit{Plasmodium falciparum}. 
+Specifically, we here utilize The Tres Cantos Antimalarial Set (TCAMS), which encompasses the 13,533 compounds that inhibited the growth of \textit{Plasmodium falciparum} 3D7 by at least 80\% at 2 microM concentration out of roughly 2 million compounds screened (active rate ~ 0.7\%)\cite{Gamo2010}. The structures for the inactive compounds were not reported, and hence, the available structures correspond to only active compounds.
+%Our choice was guided by 
+%We chose this data set due to the large amount of data for this particular target that is available in the public domain, and the specific objectives that are associated to a malaria project (for instance, finding drugs that are structurally very different from existing ones starting from a set of active compounds). 
+We discuss in depth two general problems that beset any attempt to use quantitative techniques to direct a drug discovery project, namely: extrapolation using a heavily biased data set as starting point (in our case biased towards active compounds), and multi-parameter optimization to identify compounds satisfying a set of quantitative conditions.
 % ICC this sounds like a leaflet.. Not good for a publication: In this paper we demonstrate the working of a particular set of algorithms that form part of the proprietary technology developed by some of the authors to facilitate automated drug discovery.  
 \newline
 \newline
 
 
 Although we use standard machine learning algorithms in this study, we note that our interpretation of the results is somewhat different from a standard predictive modelling outlook. 
-In this work, we formulate and investigate  the tasks of model extrapolation and multi-parameter optimization geometrically, with molecular space $M$ living inside the space $M \to F = [0, 1]^{128}$ associated with 128-bit Morgan fingerprints, and a similarity metric given by Tanimoto distance. 
+In this work, we formulate and investigate the tasks of model extrapolation and multi-parameter optimization geometrically, with molecular space $M$ living inside the space $M \to F = [0, 1]^{128}$ associated with 128-bit Morgan fingerprints, and a similarity metric given by Tanimoto distance. 
 \newline
 \newline
 The first question we examine is model extrapolation: given a set of molecules whose values for some feature of interest are known, how well will a model that is trained on this data perform in predicting that same feature for very different molecules? In other words, how well will a model perform when extrapolated away from its training area? This difficulty is particularly acute when trying to build models from public data, due to the biases in the way this data is reported\cite{Kalliokoski2013,Tiikkainen2013}. Here, we show how to use the geometry of molecular space embedded in $F$ to correct for this bias. Our results indicate a way in which predictive models can be trained on a small (and possibly biased) dataset, but nonetheless produce sensible generalisations when predicting on arbitrary inputs.
@@ -62,30 +90,61 @@ The second question we address is that of multi-parameter optimization.  A succe
 This is again due to the geometry of $F$. The correlation between any two random vectors in very close to zero, due to the size of the dimension of the space.  Thus it should be easy for an optimizer, starting from one point, to move in a `good' direction that is orthogonal to several other directions (which is precisely what a multi-parameter optimizer has to do).  Let $B(m, \epsilon) \subset M$ be the set of molecules that are Tanimoto distance less than or equal to $\epsilon$ from the molecule $m$.  The difficulty comes from the fact that given some molecule $m \in M$, the number of molecules in  $B(m, \epsilon)$ may be small for small $\epsilon$, so that although it is easy to find a vector direction starting from a particular molecule in which to search for an improvement, there just aren't any nearby molecules \textit{in that direction}. However, the number of molecules in $B(m, \epsilon)$ grows extremely fast as a function of $\epsilon$.  Our results indicate that correctly adjusted models will generate informative predictions for values of $\epsilon$ sufficiently large that there are in fact plenty of molecules to chose from in any desired direction.
 
 
+\section*{Methods}
 
-\section{Methods}
-
-\subsection{Collection and Curation of Antimalarial Drug Screening Data}
+\subsection*{Collection and Curation of Antimalarial Screening Data}
 
 For this project we gathered antimalarial screening data from ChEMBL database version 23 using the {\it chembl\_webresource\_client} python module\cite{Davies2015}.
 Specifically, we assembled a first data set by downloading potency values against \textit{Plasmodium Falciparum} from the following seven Malaria screening collections available in ChEMBL, namely: GSK TCAMS, St Jude, MMV Malaria Box, Novartis, Harvard, OpenS, and WHO-TDR.
-$IC_{50}$ values were modeled in a logarithmic scale ($pIC_{50}$ = -$log_{10} IC_{50}$ [M]). This data set is available on request (and the code to download directly from Chembl is on the git page accompanying this paper).
+$IC_{50}$ values were modeled in a logarithmic scale ($pIC_{50}$ = -$log_{10} IC_{50}$ [M]). 
+%This data set is available on request (and 
+The code required to download directly from ChEMBL all these data sets, as well as the assay IDs for all of them, is available on the  accompanying GitHub repository for this article: https://github.com/owatson/MalariaPaper.
 \newline
 \newline
-In addition, we assembled a second data set by downloading antimalarial screening (i.e., potency) and {\it in vitro} toxicity data (50\% growth inhibition bioassay end-point values measured by screening the compounds in the data set against the cell line HepG2) from the Tres Cantos data set, downloaded directly from \href{https://chembl.gitbook.io/chembl-ntd/downloads/deposited-set-1-gsk-tcams-dataset-20th-may-2010}{here}. The toxicity values from this data set were used to build the toxicity models described below.
+In addition, we assembled a second data set by downloading both antimalarial screening (i.e., potency) and {\it in vitro} toxicity data (50\% growth inhibition bioassay end-point values measured by screening the compounds data set against the cell line HepG2) for the compounds in the TCAMS data set.
+%, downloaded directly from \href{https://chembl.gitbook.io/chembl-ntd/downloads/deposited-set-1-gsk-tcams-dataset-20th-may-2010}{here}. 
+The toxicity values from this data set were used to build the toxicity models described below.
 \newline
 \newline
+Finally, we used a third data source to explore the commercially available chemical space during the optimization steps.  This is the library of (approximately) 7.5M commercially available compounds from Molport.  We use these compounds as: \begin{itemize}
+    \item A proxy for `accessible molecular space'.
+    \item A domain from which to select the most promising compounds according to various optimization criteria we investigated (see below).
+\end{itemize}
 
 
-It is important to restrict the data one queries from ChEMBL to \textit{specifically} malaria assays performed under controlled experimental conditions, otherwise one obtains a fairly startling variety of results. 
-%Earlier on, we attempted to 
-For instance, by simply extracting all screening data annotated against 
-%run the study on all Chembl values recorded against
-\textit{Plasmodium Falciparum} we found over 1,000 different values for Chloroquine (an antimalarial drug) activity. The standard deviation of the recorded bioactivity values for Chloroquine was greater than that for the data as a whole. This is line with previous large-scale analysis of the concordance of public data\cite{Kalliokoski2013,Kalliokoski2013B,Cortes-Ciriano2015}, and reinforces the need for stringent filtering and curation steps to gather high quality data prior to modelling.
+\subsection*{Molecular Representation}
+We standardized all chemical structures in all datasets described above to a common representation scheme using the python module standardizer (https://github.com/flatkinson/standardiser). Inorganic molecules were removed, and the largest fragment was kept in order to filter out counterions\cite{Fourches2010}. 
+To represent molecules for subsequent model generation, we computed circular Morgan fingerprints\cite{Rogers2010} for all compounds using RDkit (release version 2013.03.02)\cite{rdkit}.
+Specifically, we computed hashed Morgan fingerprints in binary format 
+using the RDkit function \textit{GetMorganFingerprintAsBitVect}, which returns values in ${F_2}^{128}$,
+and in count format, using in this case the RDkit function, \textit{GetHashedMorganFingerprint}, which returns values in $\mathbb{N}^{128}$.  
+We decided to use Morgan fingerprints as compound descriptors given the higher retrieval rates obtained with this descriptor type in comparative virtual screening studies\cite{Koutsoukas2013}. The radius was set to 2 and the fingerprint length to 128. We note that longer fingerprints are associated with higher predictive power\cite{OBoyle2016}. However, we did not observe a large improvement when we used longer fingerprints to model this particular data set. Hence, we decided to use short fingerprints to decrease the computational footprint of our analyses.
 
-Using the specific malaria assays gives a much more consistent dataset.  However, we note that the dataset we assembled is biased towards molecules with IC50 values in the low micromolar range (Figure \ref{fig:hist}). 
+
+\subsection*{Machine Learning}
+We built Random Forest (RF) and Ridge Regression models using the python library scikit-learn\cite{scikit}, as previously described \citep{et1:}.
+In order to assess the predictive power of the models, we performed K-fold cross validation. Specifically, 
+we trained RF and Ridge Regression models on bootstrap subsamples of the data, and used the out-of-sample (OOS) results for each subsample to calculate the RMSE and $R^2$ values for the predicted against the observed potency or toxicity values.
+In the vein of generating reproducible research\cite{Walters2013,Landrum2012}, all code and data sets (other than Molport data) used to generate this research, as well as a Jupyter notebook containing all the necessary analyses to reproduce the results and figures reported in this contribution, are available at https://github.com/owatson/MalariaPaper.
+
+
+
+%--------------------------------------
+\section*{Results and Discussion}
+%--------------------------------------
+
+\subsection*{Consistency of the Antimalarial Screening Data Publicly Available}
+
+We firstly analyzed the consistency of the antimalarial screening data available in ChEMBL. To this aim, we examined the variability of the bioactivity measurements for compounds tested using diverse assays. Our analysis revealed that it is important to restrict the data one queries from ChEMBL to \textit{specifically} bioactivity datapoints measured  under controlled experimental conditions, otherwise one obtains a fairly startling variety of results. For instance, by simply extracting all screening data annotated against \textit{Plasmodium Falciparum} we found over 1,000 different values for Chloroquine (an antimalarial drug) activity. The standard deviation of the recorded bioactivity values for Chloroquine was greater than that for the data as a whole. This is line with previous large-scale analysis of the concordance of public data\cite{Kalliokoski2013,Kalliokoski2013B,Cortes-Ciriano2015}, and reinforces the need for stringent filtering and curation steps to gather high quality data prior to modelling.
+
+
+Given the low concordance of the public data, we decided to only consider the TCAMS data set to represent active compounds (Figure \ref{fig:hist}). We extended the TCAMS data set with inactive compounds by including  data points from ChEMBL corresponding to antimalarial datapoints agains any \textit{Plasmodium Falciparum} strain exhibiting pChEMBL values $<$ 5.5.
+%Using the specific malaria assays gives a much more consistent dataset. 
+%However, 
+%We note however that the TCAMS dataset only contains active molecules . Hence, we decided to extend it by including compounds with pChEMBL values < 5.5. 
+%molecules with IC50 values in the low micromolar range 
 %It is apparent from the distribution of potency values  that \textit{inactive} molecules are underrepresented (Figure \ref{fig:hist}).
-Moreover, we can \textit{not} assume that all other ChEMBL data are inactive against \textit{Plasmodium}, as several well-known drugs (and hence active) are missing from the data. Dealing with this non-trivial bias in the data is a key issue we confront in the model fitting phase (see below).\newline
+We note that we \textit{cannot} assume that all other ChEMBL data are inactive against \textit{Plasmodium}, as several well-known drugs (and hence active) are missing from the data. Dealing with this non-trivial bias in the data is a key issue we confront in the model fitting phase (see below).\newline
 
 \begin{figure}[h!]
 \centering
@@ -94,38 +153,16 @@ Moreover, we can \textit{not} assume that all other ChEMBL data are inactive aga
 \label{fig:hist}
 \end{figure}
 
-\newline
-Finally, we used a third data source to explore the commercially available chemical space during the optimization steps.  This is the library of (approximately) 7.5M commercially available compounds from Molport.  We use these compounds as: \begin{itemize}
-    \item A proxy for `accessible molecular space'.
-    \item A domain from which to select the most promising compounds according to various optimization criteria we investigate (see below).
-\end{itemize}
-
-
-\subsection{Molecular Representation}
-We standardized all chemical structures in all datasets described above to a common representation scheme using the python module standardizer (https://github.com/flatkinson/standardiser). Inorganic molecules were removed, and the largest fragment was kept in order to filter out counterions\cite{Fourches2010}. 
-To represent molecules for subsequent model generation, we computed circular Morgan fingerprints\cite{Rogers2010} for all compounds using RDkit (release version 2013.03.02)\cite{rdkit}. We decided to use Morgan fingerprints as compound descriptors given the higher retrieval rates obtained with this descriptor type in comparative virtual screening studies\cite{Koutsoukas2013}. The radius was set to 2 and the fingerprint length to 128. We note that longer fingerprints are associated with higher predictive power\cite{OBoyle2016}. However, we did not observe a large improvement when we used longer fingerprints to model this particular data set. Hence, we decided to use short fingerprints to decrease the computational footprint of our analyses. 
-
-\subsection{Machine Learning}
-We built Random Forest (RF) and Ridge Regression models using the python library scikit-learn\cite{scikit}, we previously described \citep{et1:}.
-In order to assess the predictive power of the models, we performed K-fold cross validation. Specifically, 
-we trained RF and Ridge Regression models on bootstrap subsamples of the data, and used the out-of-sample (OOS) results for each subsample to calculate the RMSE and R2 values for the predicted against the observed potency or toxicity values.
-In the vein of generating reproducible research\cite{Walters2013,Landrum2012}, all code used to generate this research, as well as the Jupyter notebook are available at https://github.com/owatson/MalariaPaper (datasets other than Molport data available upon request).
-
-
-
-
-%--------------------------------------
-\section{Results and Discussion}
-%--------------------------------------
-
-\subsection{Modelling compound potency and toxicity against {\it Plasmodium Falciparum}
+\subsection*{Modelling compound potency and toxicity against {\it Plasmodium Falciparum}
 %Virtual screening enabled by multiparameter-optimization}
 %Geometrical Interpretation of Model Extrapolation and Multi-Parameter Optimization
 }
 
-We initially sought to determine the predictive power of RF and Ridge Regression models trained on the full data set.  To estimate these quantities we took 40 random bootstrap samples of our data on which to fit our models (be they ridge regression or random forest) and then used the non-sampled data to compute a value for the quantity (beta, correlation coefficient) of interest.  Confidence intervals were then taken from the resulting distribution of values.
+Next, we sought to determine the predictive power of RF and Ridge Regression models trained on the full data set.  To estimate these quantities we took 40 random bootstrap samples of our data on which to fit our models (be they ridge regression or random forest) and then used the non-sampled data to compute a value for the quantity of interest (beta and correlation coefficient in this case). Confidence intervals were then taken from the resulting distribution of values.
 
-We show below the mean and the 95\% confidence intervals for the Pearson correlation coefficients ($R^2$) between the predicted and observed potency/toxicity values \footnote{We don't show the betas of these models, since these were never statistically significantly different from 1.0 - i.e. these models neither overfit nor underfit}: 
+We show below the mean and the 95\% confidence intervals for the Pearson correlation coefficients ($R^2$) between the predicted and observed potency/toxicity values (we do not show the betas of these models, since these were never statistically significantly different from 1.0; i.e., these models neither overfit nor underfit).
+
+
 
 \begin{table}[h!]
 \centering
@@ -142,23 +179,27 @@ Toxicity Ridge Regression $R^2$ & 0.125 & 0.106 & 0.139 \\
 Toxicity Random Forest $R^2$ & 0.299 & 0.287 & 0.309\\
  \hline
 \end{tabular}
-\caption{Modelling results for Potency and Toxicity using 128-bit fingerprints}
+\caption{Modelling results for Potency and Toxicity using 128-bit Morgan fingerprints in binary format}
 \label{table:Potency}
 \end{table}
 
 
-These results are in accordance with expectation given the results of \citep{et1:} and models reported in the literature for data sets extracted from ChEMBL: Random forests substantially outperform simple linear models when there are no constraints on the in-sample/out-of-sample division.
+Overall, the most predictive models exhibited RMSE and $R^2$ values of ~0.3 and 0.4, respectively. 
+This level of performance is statistically higher than simply predicting the average pIC50 value in the training set for the test set instances ($R^2$=0; RMSE=0.45). Given that a large fraction of the datapoints in the TCAMS data set have a pIC50 value around 6, this analysis is important to corroborate that the low RMSE values obtained are not spurious (i.e., a consequence of simply predicting the average value for all test  set instances). We note that the reduced range of pIC50 values encompassed in our data set partially underlies the low $R^2$ values we obtain\cite{Alexander2015}.
+These results are in accordance with expectation of our previous work\citep{et1:} and models reported in the literature for data sets extracted from ChEMBL: Random Forest models substantially outperform simple linear models when there are no constraints on the in-sample/out-of-sample division.
 
-We also examined the predictive power of models trained using hashed Morgan fingerprints as predictors \footnote{i.e. using the rdkit function GetHashedMorganFingerprint - which returns values in $\mathbb{N}^{128}$ - in particular counting the number of atoms - rather than the simpler GetMorganFingerprintAsBitVect which returns values in ${F_2}^{128}$}  These underperformed (non statistically significantly; Kolmogorov-Smirnov test; P $>$0.05) relative to binary fingerprints in predicting potency, and outperformed (again without statistical significance) in predicting toxicity.  
-Given the comparable results of both types of fingerprints, We will only refer to the models based on binary fingerprints for the remainder of the paper.
+Together, these results indicate that XXXXX
 \newline
 \newline
+We also examined the predictive power of models trained using  Morgan fingerprints in count format as predictors. These underperformed (non statistically significantly; Kolmogorov-Smirnov test; P $>$0.05) relative to binary fingerprints in predicting potency, and outperformed (again without statistical significance) in predicting toxicity.  
+Given the comparable results of both types of fingerprints, we will only refer to the models based on binary fingerprints for the remainder of the paper.
+
 
 % we obtained metrics on the bootstrap out-of-sample (OOS) fits of both RF and Ridge Regression models we trained the models on bootstrap subsamples of the data, and used the out-of-sample results for each subsample to calculate the OOS metrics. 
 
 %Our basic model fitting procedure was very simple.  For our predictors, we used 128-bit (radius 2) binary fingerprints of the compounds. 
 
-\subsection{Molecular Similarity: Tanimoto distance}
+\subsection*{Molecular Similarity and Tanimoto Distance}
 
 Quantifying molecular similarity is key to chemoinformatic applications in general\cite{Bender2004b}, and to our formulation of virtual screening as a geometry problem in particular.
 The standard distance metric used to measure similarity and dissimilarity of molecules is the Tanimoto (sometimes called Jaccard) distance metric\cite{Bajusz2015}.  We wish in this section to develop some intuition for why this metric is the right one for our analysis, and its basic properties.
@@ -171,7 +212,7 @@ A good metric in our context will be one for whom it is true that molecules clos
 Suppose that any particular substructure has a one-in-two chance of being found in a (randomly chosen somehow) molecule.  The molecular fingerprints would have each bit randomly being 1 or 0 with equal probability $1/2$.  If this were the case, then for two random compounds $A$ and $B$, there would be approximately $1/4$ of the bits both 1 in their fingerprints, and $3/4$ of the bits 1 in at least one of the their fingerprints.  Hence the Tanimoto similarity between $A$ and $B$ would be $1/3$ and the Tanimoto distance would be $2/3$.  More generally, if one could think of molecules as randomly having any given molecular structure with fixed probability $p$, then the Tanimoto distance between two random molecules would be give by $(2-2p)/(2 - p)$.
 \newline
 \newline
-Empirically, looking at the sets of molecules we will be dealing with, the average Tanimoto distance between two randomly selected molecules is around $0.7$, (see Figure \ref{fig:model_extrap}) - showing that a simple model of 'each substructure is present in any compound with probability (slightly under) $1/2$' is not too inaccurate.
+Empirically, looking at the sets of molecules we will be dealing with, the average Tanimoto distance between two randomly selected molecules is around $0.7$, (see Figure \ref{fig:model_extrap}), showing that a simple model of 'each substructure is present in any compound with probability (slightly under) $1/2$' is not too inaccurate.
 \newline
 \newline
 Given that we are interested in finding potent molecules structurally dissimilar to those in the training data, we next sought to determine the relationship between Tanimoto distance and compound potency (Figure \ref{fig:cov}). Specifically, We collected all pairs of potency values (resp, for molecules $m, n: m \neq n$) and calculated the standard deviation of the potency (resp. toxicity) as a function of the Tanimoto distance $D(m, n)$. This allowed us to quantify the rate of change in these quantities as one moves around in molecular space, or how correlated the potency and toxicity of two compounds will be, depending on how similar they are. We note however that in the case of potency at least, this correlation needs to be adjusted for bias, as we describe in a later section.
@@ -179,20 +220,17 @@ Given that we are interested in finding potent molecules structurally dissimilar
 \begin{figure}[h!]
 \centering
 \includegraphics[width=\textwidth]{fig2_same_and_opposite.png}
-\caption{Examples of a) same fingerprint, different potency, and b) opposite (Tanimoto distance 1.0) fingerprints}
+\caption{Examples of compounds leading to a) identical fingerprints, but exhibiting different potency values, and b) fingerprints at a Tanimoto distance of 1.0. }
 \label{fig:examples}
 \end{figure}
-
-
 Overall, the fact that the standard deviation increases (and thus correlation decreases) between the potency and toxicity of two compounds as they move further away from each other in Tanimoto distance shows that Tanimoto distance is an appropriate metric to use empirically, as well as theoretically, for this data set.  We will pursue this idea in the next subsections.  
 
+\subsection*{Co-variance of Molecular Properties as a Function of Tanimoto Similarity}
 
-\subsection{Co-variance of Molecular Properties as a Function of Tanimoto Similarity}
-
-Next, we investigated the following question.  Suppose we know some value of interest (say potency, or toxicity) for some compound X.  How much uncertainty is there in our knowledge of that value for some other compound Y, depending on how similar X and Y are?
+Next, we investigated the following question. Suppose we know some value of interest (say potency, or toxicity) for some compound X.  How much uncertainty is there in our knowledge of that value for some other compound Y, depending on how similar X and Y are?
 \newline
 \newline
-Clearly if Y is very dissimilar to X (essentially a randomly chosen compound) then knowledge of X's properties will tell us nothing about those of Y. Thus our uncertainty about the Y's properties will be the `base rate' uncertainty for those properties. If on the other hand Y is very similar to X, presumably our uncertainty about Y's properties will diminish (this is in some sense the `whole point' of doing any kind of QSAR modelling).  In an extreme case we can imagine that Y is \textit{exactly the same} compound as X - in which case the true uncertainty will be 0 (although the data uncertainty - representing noise in assays or data collection - might be substantially higher than 0).  In this work we use 128-bit binary fingerprints as our mathematical representation of compounds.  Two compounds can have the same 128-bit representation without being identical as we show in figure \ref{fig:examples} (together with an example of two compounds with 'opposite' fingerprints - or ones that are at maximum Tanimoto distance 1.0 from each other.
+Clearly if Y is very dissimilar to X (essentially a randomly chosen compound) then knowledge of X's properties will tell us nothing about those of Y. Thus our uncertainty about the Y's properties will be the `base rate' uncertainty for those properties. If on the other hand Y is very similar to X, presumably our uncertainty about Y's properties will diminish (this is in some sense the `whole point' of doing any kind of QSAR modelling).  In an extreme case we can imagine that Y is \textit{exactly the same} compound as X, in which case the true uncertainty will be 0 (although the data uncertainty, representing noise in assays or data collection, might be substantially higher than 0).  In this work we use 128-bit binary fingerprints as our mathematical representation of compounds.  Two compounds can have the same 128-bit representation without being identical as we show in figure \ref{fig:examples} (together with an example of two compounds with 'opposite' fingerprints, or ones that are at maximum Tanimoto distance 1.0 from each other.
 
 \begin{figure}[h!]
 \centering
@@ -202,8 +240,8 @@ Clearly if Y is very dissimilar to X (essentially a randomly chosen compound) th
 \end{figure}
 Understanding the extent of the uncertainty reduction as as function of the similarity between two compounds is key to one aspect of quantitative drug discovery.  When we select a set of compounds to test, we want to maximize the \textit{information gain} we achieve by testing that set of compounds (subject to minimizing the cost of testing).  Clearly, if the compounds we test are too similar, the information we glean is lower (since knowledge of any one of the test outcomes would tell us a lot about the expected outcome of all the other tests).  This is a principled way to address the question of `Exploration vs. Exploitation'.  We try to test compounds that we expect to be \textit{good}, but also ones that are not too similar to each other.
 
-\subsection{Model Extrapolation as a function of Tanimoto distance}
-It is intuitively plausible, and well known among practicing chemists, that models perform poorly on molecules that are \textit{different} from those that the models where trained upon\cite{et0:}.  In this section we attempt to formalize this notion.  We have already seen that that Tanimoto distance provides a plausible and empirically successful measure of distance on molecular space.
+\subsection*{Model Extrapolation as a function of Tanimoto distance}
+It is intuitively plausible, and well known among practicing chemists, that models perform poorly on molecules that are \textit{different} from those that the models where trained upon\cite{et0:}.  In this subsection, we attempt to formalize this notion.  We have already seen that Tanimoto distance provides a plausible and empirically successful measure of distance on molecular space.
 \newline
 \newline
 We expect our models to degrade in their accuracy as we use them to predict on data points far (in Tanimoto distance) from the training set. We can use the training set to assess the extent of this degradation.
@@ -227,10 +265,10 @@ Let us define $\beta(d)$ by the following equation:
 where $r_{i}$ is some response value of interest, and $p(d)_{i}$ is the prediction obtained from a model (of unspecified type) fit on all datapoints $m_{k} : \mathbf{TD}(m_{k}, r_{i}) > d$
 \newline
 \newline
-Similarly, we can define $R(d)$ as the fraction of the variance  of the $r_{i}$ explained by the equation above  (aka the R-squared of the model).
+Similarly, we can define $R(d)$ as the fraction of the variance  of the $r_{i}$ explained by the equation above  (a.k.a. the R-squared of the model).
 \newline
 \newline
-Figure \ref{fig:model_extrap} shows plots of $\beta(d)$ and $R(d)$ where the $r_{i}$ is the log potency in the Tres Cantos data set, as a function of $d$.  In each plot we show the functions arising from Random-Forest fits and ridge regression models (both chosen with reasonable parameters, as described in \citep{et1:}).
+Figure \ref{fig:model_extrap} shows plots of $\beta(d)$ and $R(d)$ where the $r_{i}$ is the log potency in the TCAMS data set, as a function of $d$.  In each plot we show the functions arising from Random-Forest fits and ridge regression models (both chosen with reasonable parameters, as described in \citep{et1:}).
 
 \begin{figure}[h!]
 \centering
@@ -251,17 +289,20 @@ What is perhaps most surprising about these results is the quite large extrapola
 We  employed exactly the same procedure to model toxicity, and found the similar results as shown in the same figure.
 
 
-\subsection{Correcting for Bias in the Training Data}
+\subsection*{Correcting for Bias in the Training Data}
 
-Before we can try to apply our models sensibly in a search for potential new drugs, we need to address the issue of the (extreme) bias in the data we have.  Obviously, random compounds are not excepted to be active against the malaria parasite.  However, it is very clear from looking at a potency histogram of values in our data (Figure \ref{fig:hist}) that (almost) exclusively \textit{active} compounds have been reported.  Nor can we assume that any 'well known' (e.g. present in ChEMBL) compound has been screened against malaria and, if not present in our dataset, is inactive against \textit{Plasmodium Falciparum}.  In particular, some known drugs (Doxycycline) are missing from the data, indicating that we are missing some active compounds.
+Before we can try to apply our models sensibly in a search for potential new drugs, we need to address the issue of the (extreme) bias in the data we have.  Obviously, random compounds are not excepted to be active against the malaria parasite.  However, it is very clear from looking at a potency histogram of values in our data (Figure \ref{fig:hist}) that %(almost)
+exclusively \textit{active} compounds have been reported.  Nor can we assume that any 'well known' (e.g. present in ChEMBL) compound has been screened against malaria and, if not present in our dataset, is inactive against \textit{Plasmodium Falciparum}.  In particular, some known drugs (e.g., Doxycycline) are missing from the data, indicating that we are missing some active compounds.
 
-Observing the potency histogram of our malaria data set, we see a peak in pIC50 around $6.5$ (Figure \ref{fig:hist}).  A standard `inactive' molecule would have pIC50 value (to within the limits of experimental error) of less than $4$.  Indeed $3.5$ is the lower limit of many assays, and it is not possible always to measure values below this.  We will assume all \textit{inactive} compounds have a pIC50 of $3.5$ for simplicity.
+Observing the potency histogram of our malaria data set, we see a peak in pIC50 around $6.5$ (Figure \ref{fig:hist}).  A standard `inactive' molecule would have pIC50 value (to within the limits of experimental error) of less than $5$\cite{koutsoukas_2013}.  
+%Indeed $3.5$ is the lower limit of many assays, and it is not possible always to measure values below this.  
+We will assume all \textit{inactive} compounds have a pIC50 of $3.5$ for simplicity.
 %ICC I would say a lower limit of 4pIC50 units. And would say that inactives are in the 4-5 pIC50 range normally. We do need to check is these same ranges apply to the assay used to screen the compounds here. One quick way to do that would be to check the pChEMBL values for these compounds
 \newline
 \newline
 We need to make sensible and conservative corrections to our model to allow it to make reasonable predictions on any compound input.  
 
-We do this by breaking the activity prediction into two parts: the activity level (assuming the model is active) and the probability that the compound is active in the first place.  We use a Bayesian calculation, where the conditioning variable is the minimum Tanimoto distance of the compound from any previously seen active (pIC50 > 5) compound.
+We do this by breaking the activity prediction into two parts: the activity level (assuming the model is active) and the probability that the compound is active in the first place.  We use a Bayesian calculation, where the conditioning variable is the minimum Tanimoto distance of the compound from any previously seen active (pIC50 $>$ 5) compound.
 
 In Figure \ref{fig:mal_cluster} we show these two density histograms. 
 The first one corresponds to 100 million pairwise distances between ten thousand randomly chosen compounds from our malaria dataset.  Thus the first histogram represents the distribution of two compounds that are active against {\it P. falciparum}.
@@ -272,20 +313,21 @@ The second density histogram was constructed by calculating another 100 million 
     \item ten thousand randomly selected molecules from our Molport database.
 \end{itemize}
 Thus these histograms represent the distributions of the distance between a random molecule from our (active) malaria dataset and 
-\begin{enumerate}
+\begin{itemize}
     \item Other random active molecules
     \item Other random (be it active or inactive) molecules that are reasonable in some way (say readily obtainable).
-\end{enumerate}
-We note (as might be expected) that, given a molecule active against malaria, other active are more likely to be close to it than random molecules are.
+\end{itemize}
+We note (as might be expected) that, given a molecule active against malaria, other actives are more likely to be close to it than random molecules are.
 \newline
 \newline
 We then use these two distributions to estimate the relative density of active vs inactive compounds in the neighborhood of an active compound.
-We do however need a key unobserved value $\pi$ - namely the overall fraction of active compounds in the full population of `reasonable' molecules.  In our case we can arrive at some sort of estimate of this unknown value in two ways:
+We do however need a key unobserved value $\pi$, namely the overall fraction of active compounds in the full population of `reasonable' molecules.  In our case we can arrive at some sort of estimate of this unknown value in two ways:
 \begin{itemize}
-    \item A 'guesstimate' approach. If we assume that around two million compounds were screened against \textit{Plasmodium Falciparum} - which is the sort of size amenable to current high-throughput technologies\cite{PaweSzymanskiMagdalenaMarkowicz2012} - then we would get a fraction of around $0.01$ of all compounds being active in order to create our roughly twenty thousand compound-sized dataset.
-    \item Directly from the data, given that we can plausibly assume that compounds very close to an active are themselves active - or at least highly likely to be (e.g. from Figure \ref{fig:cov} - the covariance in Potency of two compounds with identical fingerprints is low).  If we assume this, then we can calculate that the probability of a compound $X$ being (very) close to an active compound $Y$ \textit{given that $X$ is active} should be $1/\pi$ times the probability of an \textit{arbitrary} compound $Z$ being close to $Y$.
+    \item A 'guesstimate' approach. If we assume that around two million compounds were screened against \textit{Plasmodium Falciparum}\cite{Gamo2010}, which is the sort of size amenable to current high-throughput technologies\cite{PaweSzymanskiMagdalenaMarkowicz2012,Gamo2010}, then we would get a fraction of around $0.01$ of all compounds being active in order to create our roughly twenty thousand compound-sized dataset (13,533 out of ~ 2 million gives an active rate of 0.7\%).
+    \item Directly from the data, given that we can plausibly assume that compounds very close to an active are themselves active, or at least highly likely to be (e.g. from Figure \ref{fig:cov}, the covariance in Potency of two compounds with identical fingerprints is low).  If we assume this, then we can calculate that the probability of a compound $X$ being (very) close to an active compound $Y$ \textit{given that $X$ is active} should be $1/\pi$ times the probability of an \textit{arbitrary} compound $Z$ being close to $Y$.
 \end{itemize}
-Thankfully these two approaches give roughly the same answer (as shown by the fact that when we use our guesstimate of $0.01$ for $\pi$ in the lower plot of Figure \ref{fig:mal_cluster}, we see that the fraction of estimated actives is close to 1.0 for when the Tanimoto distance from an active tends to 0.  We therefore use this value of $0.01$ (or one compounds in 100 being expected to be active against the malaria parasite) for the rest of this paper. 
+These two approaches give roughly the same answer, as shown by the fact that when we use our guesstimate of $0.01$ for $\pi$ in the lower plot of Figure \ref{fig:mal_cluster}, we see that the fraction of estimated actives is close to 1.0 for when the Tanimoto distance from an active tends to 0.  We therefore use this value of $0.01$ (or one compound in 100 being expected to be active against the malaria parasite) for the rest of this paper. 
+%We note that this value of $\pi$ is also supported by the fraction of compounds in the GSK screen that were found active and that now constitute the TCAMS data set (13,533 out of ~ 2 million).\cite{Gamo2010}
 
 \begin{figure}
     \centering
@@ -307,27 +349,28 @@ For an unknown compound $C$, the predicted potency will be:
 where $A$ = set of Active molecules and $I$ = activity level of inactive molecules.
 
 In this case $\mathbb{E}[Potency(C | C \in A)]$ will be a function of: \begin{itemize}
-    \item our actively fit model prediction on C
-    \item the minimum distance of C from our dataset (as C moves further away from our training set in Tanimoto space, we should - from Figure \ref{fig:model_extrap} belief our estimate towards the mean activity level.\footnote{There is a fairly tricky statistical issue that is being glossed over here.  Our density estimation gives us a good way to estimate the distance between a random compound and a \textit{random} active compound.  But when we use this procedure, we are applying it to the \textit{minimum} distance between an unknown compound and our set.  The more theoretically correct approach would be to estimate the distribution of \textit{minimum distances} between random compounds and active compounds and compare this to to \textit{minimum distances} between active compounds and other active compounds.  When we do this, we find (not reported, but results in accompanying notebook) as expected somewhat faster drop-off in the fraction of actives as a function of Tanimoto distance, and an estimate of around 1 compound in 200 (as opposed to the 1 in 100 we used) active against malaria.  This theoretically more correct approach is however much more sensitive to any bias in the selection of compounds tested - in particular if many similar compounds happened to be tested, a bias we expect to exist in the data.  Therefore we went with our simpler, though theoretically less correct, approach}
+    \item our actively fit model prediction on $C$
+    \item the minimum distance of C from our dataset (as $C$ moves further away from our training set in Tanimoto space, we should, from Figure \ref{fig:model_extrap} belief our estimate towards the mean activity level.\footnote{There is a fairly tricky statistical issue that is being glossed over here.  Our density estimation gives us a good way to estimate the distance between a random compound and a \textit{random} active compound.  But when we use this procedure, we are applying it to the \textit{minimum} distance between an unknown compound and our set.  The more theoretically correct approach would be to estimate the distribution of \textit{minimum distances} between random compounds and active compounds and compare this to to \textit{minimum distances} between active compounds and other active compounds.  When we do this, we find (not reported, but results in accompanying notebook) as expected somewhat faster drop-off in the fraction of actives as a function of Tanimoto distance, and an estimate of around 1 compound in 200 (as opposed to the 1 in 100 we used) active against malaria.  This theoretically more correct approach is however much more sensitive to any bias in the selection of compounds tested, in particular if many similar compounds happened to be tested, a bias we expect to exist in the data.  Therefore we went with our simpler, though theoretically less correct, approach}
 \end{itemize}
 
 $\Pr(C \in A)$ is simply a function of the minimum Tanimoto distance of $C$ to the malaria dataset.
 
 
-With the toxicity data, the nature of the bias (if any) is not as clear.  Therefore, we will not attempt to correct for bias in the toxicity model, and simply take the predictions as they are provided by the model (in particular, we will not belief toxicity prediction towards the mean toxicity as we move further away from the malaria dataset.
+With the toxicity data, the nature of the bias (if any) is not as clear.  Therefore, we will not attempt to correct for bias in the toxicity model, and simply take the predictions as they are provided by the model (in particular, we will not belief toxicity prediction towards the mean toxicity as we move further away from the malaria dataset).
 
 
 % Define MOP
 % Reads multi-parameter optimization optimization 
-\section{Multi-Parameter Optimization (MPO)}
+\section*{Multi-Parameter Optimization (MPO)}
 
-In this section, we illustrate how the models described above could be used in a drug discovery project. In particular, we illustrate what the models do, and how different goals can be traded off against each other.
+In this section, we illustrate how the models described above could be used in a prospective drug discovery project. In particular, we illustrate how different goals can be traded off against each other using our models.
 
-We have our models fit on the combined malaria data, but to arrive at new predictions, we need to apply these models to new compounds.  We use the 7.5M commercially available molecules from Molport (Methods), and look at the top selections from these according to our models along various criteria.
+%We have our models fit on the combined malaria data, but to arrive at new predictions, 
+We firstly apply the models fit on the potency and toxicity data to new compounds.  To this aim, we use the 7.5M commercially available molecules from Molport (Methods), and look at the top selections from these according to our models along various criteria.
 
-As a starting point, what are the compounds predicted to be most potent in the Molport database (removing stereoisomers, or any compounds that have identical 
+As a starting point, what are the compounds predicted to be most potent in the Molport database (removing stereoisomers, or any compounds with identical 
 %rdkit.Chem 
-smiles)?  We show the top five in Figure \ref{fig:mostpot}.
+SMILES)?  We show the top five in Figure \ref{fig:mostpot}.
 
 \begin{figure}[h!]
 \centering
@@ -338,9 +381,11 @@ smiles)?  We show the top five in Figure \ref{fig:mostpot}.
 
 
 %This is a fairly uninteresting result.  
-All these compounds are (very slight variations on) compounds in our original malaria dataset (all have Tanimoto distance 0 to compounds in the original dataset apart from the fourth compound, which has distance 0.078).  
+All these compounds are very slight variations of compounds present in our training dataset, as all show a Tanimoto distance of 0 to compounds in the training set, apart from the fourth compound, which shows a distance 0.078.  
 
-In particular, note that the logP values of these compounds are not in the range [2-4] (generally thought to be a good indicator of favorable ADMET properties), and QED values are below 0.5 (another ADMET indicator), showing that these compounds may not in fact be particularly suitable for drugs.  The top hit in fact is Monensin, an antibiotic that is known to have anti-malarial activity\cite{Ludwig2019}.
+In particular, note that the logP values of these compounds are not in the range [2-4] (generally thought to be a good indicator of favorable ADMET properties), and QED values are below 0.5 (another ADMET indicator).
+%, showing that these compounds may not in fact be particularly suitable for drugs.  
+The top hit in fact is Monensin, an antibiotic that is known to have anti-malarial activity\cite{Ludwig2019}.
 
 If one requires good Lipophilicity and QED values, and low predicted toxicity values, one gets as top suggestions the compounds shown in Figure \ref{fig:best_q}.
 
@@ -353,16 +398,18 @@ If one requires good Lipophilicity and QED values, and low predicted toxicity va
 \end{figure}
 
 
-A key goal of drug research in malaria is to develop new drugs, as the parasites evolve immunity to existing ones.  Commercially, one may also want to develop drugs that have different side-effect profiles, or cover novel Intellectual Property space.  We still of course want drugs that are potent, non-toxic, and have favorable ADMET qualities.  For the purposes of a drug discovery program, we want to search as large an area of molecular space as possible, as cheaply as possible.  We distill these qualitative goals into the following list of quantitative requirements. 
+A key goal in the fights against malaria is the development of new drugs, as the parasites evolve immunity to existing ones.  Commercially, one may also aim to develop drugs with improved  side-effect profiles, or cover novel Intellectual Property space.  We still of course aim to discover lead compounds that are potent, non-toxic, and have favorable ADMET qualities.  For the purposes of a drug discovery program, we want to search as large an area of molecular space as possible, and as cheaply as possible. We distill these qualitative goals into the following list of quantitative requirements. 
 
 \begin{enumerate}
-    \item To represent our goal of finding \textit{new} drugs, we take seven of the best-known malaria drugs and require that our selected compounds are at least 0.6 in Tanimoto distance away from any of these.
+    \item To represent our goal of finding \textit{novel} candidate drugs, we select seven malaria drugs and require that our selected compounds are at least 0.6 in Tanimoto distance away from any of these.
     \item As an indication of reasonable ADMET properties, we require logP of our compounds to be within the range [2-4]\cite{Hansch1971}.
-    \item As an additional indictator of favorable ADMET, we require that QED of the compounds be $> 0.5$.
-    \item Predicted toxicity from the Tox models must be $< 25\%$.
+    \item As an additional indicator of favorable ADMET properties, we require that QED of the compounds be $> 0.5$.
+    \item Predicted toxicity using the toxicity models described above must be $< 25\%$.
 \end{enumerate}
 
-This set of requirements picks up a subset of the compounds from our original malaria set, shown in Figure \ref{fig:best_in_data}.  These compounds therefore seem promising starting points for drug discovery programs. To the authors' knowledge these are not in fact actual anti-malarial drugs, although they satisfy all the criteria that we could think of imposing.
+This set of requirements picks up a subset of the compounds from our original training set, shown in Figure \ref{fig:best_in_data}. 
+%These compounds therefore seem promising starting points for drug discovery programs. 
+To the authors' knowledge these are not in fact actual anti-malarial drugs, although they satisfy all the criteria that we could think of imposing.
 
 
 \begin{figure}[h!]
@@ -372,44 +419,107 @@ This set of requirements picks up a subset of the compounds from our original ma
 \label{fig:best_in_data}
 \end{figure}
 
+It is of course not surprising that we find compounds in our original training set when we look for `most potent' compounds, even with all the other criteria we impose.  
+%The predicted potency given by our model should decrease as we wander further away from the dataset on which it was trained.
 
-It is of course not surprising that we find compounds in our original training set when we look for `most potent' compounds, even with all the other criteria we impose.  The predicted potency given by our model should decrease as we wander further away from the dataset on which it was trained.  Taken together,  these results show that it is possible to satisfy a multi-objective optimization and still find  potent candidates, at least when one has a training set as large as the one we had in this instance.
 \newline
 \newline
-For the purposes of this paper however we want to look at the predictions of the model on compounds that are different from any it has seen before.  Therefore we show in Figure \ref{fig:best_in_data} our top selections according to the above criteria \textit{that are also at least 0.2 Tanimoto distant from any molecule in the original malaria dataset} together with the closest compounds in our original dataset to these choices.
+For the purposes of this study however we want to look at the predictions of the model on compounds that are different from any it has seen before.  Therefore we show in Figure \ref{fig:best_in_data} our top selections according to the above criteria \textit{that are also at least 0.2 Tanimoto distant from any molecule in the original malaria dataset, thus guaranteeing that these molecules are structurally novel} together with the closest compounds in our original dataset to these choices.
 
 
+The key points to draw from Figure \ref{fig:best_choices} are that (i) the predicted potency values correspond to moderate activity (obviously at the low end of the range of active compounds, since we are deliberately moving away from the training set), and (ii) that given this, we can make sensible probabilistic estimates not only for each compound having potency beyond a certain threshold, but also by using the covariance models in Figure \ref{fig:cov} and \ref{fig:cov}, for \textit{at least one of} our chosen compounds being in a desired range.   
+Therefore, it is possible then to use standard optimization techniques (such as simulated annealing) to choose an optimal set of compounds for testing, and can even incorporate information as to the cost of purchasing an testing the compounds into this optimization. It seems worth mentioning also that although at $0.2$ Tanimoto distance compounds might still share functional groups and chemical moieties, and certainly within the range at which our models are expected to predict very well, even at this short distance we are finding compounds that are structurally different from their nearest neighbours in the training set.  
 
-The key points to draw from Figure \ref{fig:best_choices} is that a) the potency predictions are reasonable (obviously at the low end of the range of active compounds, since we are deliberately moving away from the training set), b) that given this, we can make sensible probabilistic estimates not only for each compound having potency beyond a certain threshold, but also by using the covariance models in Figure \ref{fig:cov} and \ref{fig:cov}, for \textit{at least one of} our chosen compounds being in a desired range.   We can then use standard optimization techniques (such as simulated annealing) to choose an optimal set of compounds for testing, and can even incorporate information as to the cost of purchasing an testing the compounds into this optimization.  It seems worth mentioning also that although $0.2$ Tanimoto distance is `quite close', and certainly within the range at which our models are expected to predict very well, even at this short distance we are finding compounds that are structurally different from their nearest neighbours in the original malaria dataset.  
-
+Taken together,  these results show that it is possible to satisfy a multi-objective optimization and still find  potent candidates, at least when one has a training set as large as the one we had in this instance.
 
 %-----------------------------------
-\section{Conclusions}
+\section*{Retrospective Discovery of Highly Active Compounds}
 %-----------------------------------
-The goal of this paper
+
+Thus far, we have explored the use of our models in making predictions on unseen compounds and choosing sets of compounds according to certain criteria.  But how much should we trust these predictions?  We have not yet challenged the proposed methodology using 
+%discussed any \textit{testing} of our methodology.  And in particular, we haven't yet 
+nor shown data that the covariance estimation anywhere.  We therefore conclude the body of this paper showing a simple but representative test to illustrate 
+that we carried out that uses all parts of the methodology.
+
+%\subsection*{Data selection}
+
+Specifically, we hold out the eight best compounds (henceforth the \textit{Target Compounds}) in the training data set, and apply the full probabilistic model described in Equation X to find these among the $N$ first compounds from the Molport database. 
+%We chose 
+The eight 'best' compounds 
+%from the malaria dataset.  Thus we asked for 
+are those with pIC50 values greater than $7.6$, and toxicity less than 5\%. %a criterion that gave us eight compounds,
+Following our previous work\cite{et1:} that suggested that the best way to separate compounds in terms of Tanimoto similarity is actually to separate on activity levels,
+we used as our training dataset all the compounds in our malaria set with pIC50 values \textit{less than} $7.5$.
+Indeed the minimum distance between a target compound and the training set was 0.15, while the maximum was 0.37.  This is substantially closer than a random set of 8 compounds, but hardly 'cheating'.
+
+%Our testing dataset was the eight target compounds together with the $N$ first compounds from the Molport database.  
+
+\subsection*{Objective and Probability of Discovering the Target Compounds by Chance}
+
+Our objective function was to choose $20$ compounds from the $N+8$ available in such a way as to maximize the likelihood that at least one of those compounds would be a target compound, the value of 20 being chosen arbitrarily, though it represents a reasonable batch size in a genuine drug discovery step.
+
+The probability of getting a target compound by choosing a random set of 20 compounds is given by:
+
+\begin{equation}
+    1-\frac{(n-8)(n-7)..(n-27)}{n(n-1)..(n-19)}
+\end{equation}
+
+%\subsection*{Results of just choosing top twenty by Potency}
+Our analysis reveals that:
+\begin{itemize}
+    \item If $N=200000$, and we chose the top 20 compounds by predicted activity from our set of 200008 available, we get two target compounds.  The probability of getting at least one by random choice is $0.0008$ (P < XX).
+    \item If $N=300000$, and we perform the same procedure, we get no target compounds (probability of getting any by random choice being $0.0005$; P < XXX).  
+\end{itemize}
+
+Overall, these results indicate that XXXXX
+
+\subsection*{Using the Covariance to Choose the Best Twenty}
+We now discuss a second experiment.  If we look at the top twenty compounds chosen by predicted potency, we see a number of them \textit{are very similar}.  This is clearly a suboptimal strategy. The question is how to improve it.
+
+This is where our earlier work on covariance estimation comes in.  We can form a crude model of potency covariance from the potency data shown in Figure \ref{fig:cov}, and we get the following:
+\begin{itemize}
+    \item Model the data in Figure \ref{fig:cov} by the function $0.15 + 2x/5$.
+    \item The variance of a potency estimate in isolation is then $0.3025 = 0.55^2$.  This is the number that appears on the main diagonal of the covariance matrix.
+    \item If two compounds have identical fingerprints (Tanimoto distance 0) then the value on the covariance matrix associated to them is $0.28 = 0.55^2 - 0.15^2$.
+    \item Two compounds with Tanimoto distance 1.0 have a covariance entry of 0.
+\end{itemize}
+
+It is important to note that this procedure is expected to understate the true variance, at least for compounds that are predicted to be relatively active, since this estimate is formed only on the basis of \textit{active} compounds.  Therefore the increased variance coming from inactive values is being ignored. In particular, if we look at the case where chose twenty compounds from 200008 available, our prediction of success (getting a compound with potency > 7.6) on the twenty we did choose, using this covariance estimate and our predicted potency, is only about 4\%, which, given we succeeded, and we have reason to believe our \textit{mean} potency predictions are correctly calibrated, suggests that we are understating the \textit{variance} fairly substantially.
+
+Our objective function is to choose twenty compounds such that at least one is good (potency > 7.6 in particular).  However, there exists no good analytic formula for estimating the probability that a vector drawn from a multivariate normal distribution with arbitrary covariance matrix has at least one entry greater than some threshold.  Therefore we are forced to estimate our loss function (the negative of the probability that at least one compound chosen have activity $> 7.6$) using a Monte-Carlo approach.
+
+We perform a stochastic annealing search through the top 100 compounds by predicted potency from the original subset of 300008, to choose the set comprising the best 20 according to this loss function (with covariance boosted by a factor of two, which still seems to be an underestimate \footnote{When we boost our covariance by a factor of two, our loss function goes from -0.04 (i.e. a 4\% probability of finding something with potency > 7.6) to -0.23 (i.e. a 23\% chance).  Given that \textit{we do actually} at least one such compound, this seems correct.  This number would also correspond to a sigma of $0.8$ on potency predictions, which seems more reasonable than the baseline $0.55$}.  When we do this, in two separate runs, we on one occasion find two target compounds, on another one.  Most importantly, with variance boosted by a factor of $2$, the loss function applied to the the final set (with the target compound in) is lower than simply choosing the top twenty by predicted potency.  I.e. the algorithm finds value in diversifying its choices.  This can be seen from the final twenty picks (in one case, where it only found one target compound), in that it only chooses three compounds from the family in which it originally chose seven.
+
+%-----------------------------------
+\section*{Conclusions}
+%-----------------------------------
+In this contribution, 
+%The goal of this paper
 %, in addition to presenting some interesting modelling results relating to malaria, 
-has been to present a sketch of an alternative modelling framework to pursue quantitative drug discovery.
+%has been to present a sketch of
+We have introduced an alternative modelling framework to pursue quantitative drug discovery that accounts for the bias in the data towards active molecules. Although we have used a data set heavily biased towards active compounds, the modeling framework we propose here can be applied to data sets showing other biases (e.g., towards inactive molecules).
 %how quantitative drug discovery might be pursued.  
 In particular, we have shown that models can be fit on molecular data that give reasonably results when applied to \textit{any} molecular inputs, as shown by the fact that when, presented with the full set of commercially available molecules, the models pick up ones they have seen in the training set, but also predict plausible values outside it.  This is important, since unless one has confidence in one's models' predictions for arbitrary inputs, one is forced in optimization to drastically restrict the range in which one searches for a solution.   The fact that we have plausible real-value predictions (i.e., predictions that we expect to neither overestimate nor underestimate the value of interest) and can build proper variance models to accompany them means that we can properly specify an objective function to use in searching over molecular candidates, and achieve direct feedback from experimental results.  In practice, after searching through commercially available compounds, one would couple these algorithms with molecular exploration software\cite{Firth2015,Merk2018}, 
 %such as MOARF [insert reference], 
-to create an automated drug discovery package.  We plan to describe this process of optimization in a later paper.
+to create an automated drug discovery pipeline.  
+%We plan to describe this process of optimization in a later paper.
 
 
 %-----------------------------------
 \newpage
-\section{Author Contributions}
+\section*{Author Contributions}
 O.W. conceived and designed the study. 
 O.W., I.C.C. and J.W. interpreted and analyzed the results, and wrote the paper.
 
-\section{Acknowledgements}
+\section*{Acknowledgements}
 This project has received funding from the European Union’s Framework Programme For Research and Innovation Horizon 2020 (2014-2020) under the Marie Curie Sklodowska-Curie Grant Agreement No. 703543 (I.C.C.).
 We would like to thank Molport for making their proprietary screening library available to us for our research.
 
-\section{Conflicts of interest}
+\section*{Conflicts of interest}
 O.W. and I.C.C. hold equity interest in Evariste Technologies Ltd.
 
 \newpage
 
-\bibliographystyle{plain}
+%\bibliographystyle{plain}
 \bibliography{references}
 \end{document}
