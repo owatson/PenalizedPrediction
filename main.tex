@@ -68,7 +68,7 @@ XXXXXXXX\cite{Wallach2018}
 
 Here, we present a modelling framework based on a set of multi-parameter optimization algorithms to discover structurally novel and active compounds 
 %facilitate automated drug discovery
-using as starting point a data set data set heavily biased towards active compounds.
+using as starting point a data set heavily biased towards active compounds.
 We use publicly available data on activity against the most common parasite responsible for malaria: \textit{Plasmodium falciparum}. 
 Specifically, we here utilize The Tres Cantos Antimalarial Set (TCAMS), which encompasses the 13,533 compounds that inhibited the growth of \textit{Plasmodium falciparum} 3D7 by at least 80\% at 2 microM concentration out of roughly 2 million compounds screened (active rate ~ 0.7\%)\cite{Gamo2010}. The structures for the inactive compounds were not reported, and hence, the available structures correspond to only active compounds.
 %Our choice was guided by 
@@ -476,15 +476,16 @@ Overall, these results indicate that XXXXX
 \subsection*{Using the Covariance to Choose the Best Twenty}
 We now discuss a second experiment.  If we look at the top twenty compounds chosen by predicted potency, we see a number of them \textit{are very similar}.  This is clearly a suboptimal strategy. The question is how to improve it.
 
-This is where our earlier work on covariance estimation comes in.  We can form a crude model of potency covariance from the potency data shown in Figure \ref{fig:cov}, and we get the following:
+This is where our earlier work on covariance estimation comes in.  We can form a crude model of potency covariance from the potency data shown in Figure \ref{fig:cov}.  The variance (which goes on the main diagonal of the covariance matrix) is the square of the standard deviation of potency \textit{unconditioned by any other data}.  We see that the standard deviation of potency tends (as Tanimoto distance tends to 1.) towards an asymptote at around 0.55.  We therefore take $0.3025 = 0.55^2$ as the variance in our covariance matrix.  We then use the Pythagorean theorem to fill in the off-diagonal elements.  Given two compounds $x_i$ and $x_j$ with Tanimoto distance $d$, the entry $C_{ij}$ of the covariance matrix is given by the unconditional variance minus the square of the conditional standard deviation.
+
+We then get the following:
 \begin{itemize}
     \item Model the data in Figure \ref{fig:cov} by the function $0.15 + 2x/5$.
     \item The variance of a potency estimate in isolation is then $0.3025 = 0.55^2$.  This is the number that appears on the main diagonal of the covariance matrix.
     \item If two compounds have identical fingerprints (Tanimoto distance 0) then the value on the covariance matrix associated to them is $0.28 = 0.55^2 - 0.15^2$.
-    \item Two compounds with Tanimoto distance 1.0 have a covariance entry of 0.
+    \item Two compounds with Tanimoto distance 1.0 have a covariance entry of 0 (they are completely independent of each other).
 \end{itemize}
 
-It is important to note that this procedure is expected to understate the true variance, at least for compounds that are predicted to be relatively active, since this estimate is formed only on the basis of \textit{active} compounds.  Therefore the increased variance coming from inactive values is being ignored. In particular, if we look at the case where chose twenty compounds from 200008 available, our prediction of success (getting a compound with potency > 7.6) on the twenty we did choose, using this covariance estimate and our predicted potency, is only about 4\%, which, given we succeeded, and we have reason to believe our \textit{mean} potency predictions are correctly calibrated, suggests that we are understating the \textit{variance} fairly substantially.
 
 Our objective function is to choose twenty compounds such that at least one is good (potency > 7.6 in particular).  However, there exists no good analytic formula for estimating the probability that a vector drawn from a multivariate normal distribution with arbitrary covariance matrix has at least one entry greater than some threshold.  Therefore we are forced to estimate our loss function (the negative of the probability that at least one compound chosen have activity $> 7.6$) using a Monte-Carlo approach.
 
@@ -497,7 +498,7 @@ In this contribution,
 %The goal of this paper
 %, in addition to presenting some interesting modelling results relating to malaria, 
 %has been to present a sketch of
-We have introduced an alternative modelling framework to pursue quantitative drug discovery that accounts for the bias in the data towards active molecules. Although we have used a data set heavily biased towards active compounds, the modeling framework we propose here can be applied to data sets showing other biases (e.g., towards inactive molecules).
+we have introduced an alternative modelling framework to pursue quantitative drug discovery that accounts for the bias in the data towards active molecules. Although we have used a data set heavily biased towards active compounds, the modeling framework we propose here can be applied to data sets showing other biases (e.g., towards inactive molecules).
 %how quantitative drug discovery might be pursued.  
 In particular, we have shown that models can be fit on molecular data that give reasonably results when applied to \textit{any} molecular inputs, as shown by the fact that when, presented with the full set of commercially available molecules, the models pick up ones they have seen in the training set, but also predict plausible values outside it.  This is important, since unless one has confidence in one's models' predictions for arbitrary inputs, one is forced in optimization to drastically restrict the range in which one searches for a solution.   The fact that we have plausible real-value predictions (i.e., predictions that we expect to neither overestimate nor underestimate the value of interest) and can build proper variance models to accompany them means that we can properly specify an objective function to use in searching over molecular candidates, and achieve direct feedback from experimental results.  In practice, after searching through commercially available compounds, one would couple these algorithms with molecular exploration software\cite{Firth2015,Merk2018}, 
 %such as MOARF [insert reference], 
