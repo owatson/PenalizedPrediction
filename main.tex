@@ -69,7 +69,7 @@ XXXXXXXX\cite{Wallach2018}
 Here, we present a modelling framework based on a set of multi-parameter optimization algorithms to discover structurally novel and active compounds 
 %facilitate automated drug discovery
 using as starting point a data set heavily biased towards active compounds.
-We use publicly available data on activity against the most common parasite responsible for malaria: \textit{Plasmodium falciparum}. 
+We use publicly available data on activity against the parasite responsible for malaria with greatest morbidity and mortality: \textit{Plasmodium falciparum}. 
 Specifically, we here utilize The Tres Cantos Antimalarial Set (TCAMS), which encompasses the 13,533 compounds that inhibited the growth of \textit{Plasmodium falciparum} 3D7 by at least 80\% at 2 microM concentration out of roughly 2 million compounds screened (active rate ~ 0.7\%)\cite{Gamo2010}. The structures for the inactive compounds were not reported, and hence, the available structures correspond to only active compounds.
 %Our choice was guided by 
 %We chose this data set due to the large amount of data for this particular target that is available in the public domain, and the specific objectives that are associated to a malaria project (for instance, finding drugs that are structurally very different from existing ones starting from a set of active compounds). 
@@ -83,7 +83,7 @@ Although we use standard machine learning algorithms in this study, we note that
 In this work, we formulate and investigate the tasks of model extrapolation and multi-parameter optimization geometrically, with molecular space $M$ living inside the space $M \to F = [0, 1]^{128}$ associated with 128-bit Morgan fingerprints, and a similarity metric given by Tanimoto distance. 
 \newline
 \newline
-The first question we examine is model extrapolation: given a set of molecules whose values for some feature of interest are known, how well will a model that is trained on this data perform in predicting that same feature for very different molecules? In other words, how well will a model perform when extrapolated away from its training area? This difficulty is particularly acute when trying to build models from public data, due to the biases in the way this data is reported\cite{Kalliokoski2013,Tiikkainen2013}. Here, we show how to use the geometry of molecular space embedded in $F$ to correct for this bias. Our results indicate a way in which predictive models can be trained on a small (and possibly biased) dataset, but nonetheless produce sensible generalisations when predicting on arbitrary inputs.
+The first question we examine is model extrapolation: given a set of molecules whose values for some feature of interest are known, how well will a model that is trained on such data perform in predicting that same feature for very different molecules? In other words, how well will a model perform when extrapolated away from its training area? This difficulty is particularly acute when trying to build models from public data, due to the biases in the way this data is reported\cite{Kalliokoski2013,Tiikkainen2013}. Here, we show how to use the geometry of molecular space embedded in $F$ to correct for this bias. Our results indicate a way in which predictive models can be trained on a small (and possibly biased) dataset, but nonetheless produce sensible generalisations when predicting on arbitrary inputs.
 \newline
 \newline
 The second question we address is that of multi-parameter optimization.  A successful drug requires many different properties and being active against the target is only one of these.  It must also be non-toxic, and have the correct chemical properties to allow it to reach the target inside a human body.  We argue that optimizing for these multiple objectives can be facilitated by considering virtual screening as a geometry problem.
@@ -467,30 +467,42 @@ The probability of getting a target compound by choosing a random set of 20 comp
 %\subsection*{Results of just choosing top twenty by Potency}
 Our analysis reveals that:
 \begin{itemize}
-    \item If $N=100000$ and we choose the top 20 compounds by predicted acti
-    \item If $N=200000$, and we chose the top 20 compounds by predicted activity, we get one target compounds.  The probability of getting at least one by random choice is $0.0008$ (P < XX).
-    \item If $N=300000$, and we perform the same procedure, we get no target compounds (probability of getting any by random choice being $0.0005$; P < XXX).  
+    \item If $N=10000$ and we choose the top 20 compounds by predicted activity, we get three target compounds.  The probability of getting at least one by random chance is $1.6\%$.
+    \item If $N=20000$, and we chose the top 20 compounds by predicted activity, we get two target compounds.  The probability of getting at least one by random choice is $0.8\%$.
+    \item If $N=70000$, as before, we get one target compound ($0.2\%$ probability by chance).
+    \item If $N=80000$, we get no target compounds.
 \end{itemize}
 
-Overall, these results indicate that XXXXX
+At first view these results might seem to indicate that while our models do indeed make our selections better than random, they are not \textit{particularly} impressive.
 
-\subsection*{Using the Covariance to Choose the Best Twenty}
-We now discuss a second experiment.  If we look at the top twenty compounds chosen by predicted potency, we see a number of them \textit{are very similar}.  This is clearly a suboptimal strategy. The question is how to improve it.
+\subsection*{Using covariance to choose the best twenty}
 
-This is where our earlier work on covariance estimation comes in.  We can form a crude model of potency covariance from the potency data shown in Figure \ref{fig:cov}.  The variance (which goes on the main diagonal of the covariance matrix) is the square of the standard deviation of potency \textit{unconditioned by any other data}.  We see that the standard deviation of potency tends (as Tanimoto distance tends to 1.) towards an asymptote at around 0.55.  We therefore take $0.3025 = 0.55^2$ as the variance in our covariance matrix.  We then use the Pythagorean theorem to fill in the off-diagonal elements.  Given two compounds $x_i$ and $x_j$ with Tanimoto distance $d$, the entry $C_{ij}$ of the covariance matrix is given by the unconditional variance minus the square of the conditional standard deviation.
+The reason for this however is that when we choose the top $M$ compounds by predicted potency, we are \textbf{not} optimizing for our objective function.  We \textbf{don't want} the compounds with the highest expected potency.  In the context of the experiment we have set up, we want the compounds with the \textit{highest likelihood of having potency >= $7.6$}.  To understand how to choose \textit{these} compounds, we need to examine our potency covariance plot in Figure \ref{fig:cov}.
 
-We then get the following:
+When we chose the top twenty compounds by predicted potency from a set of $80000$, all the compounds that are selected are at Tanimoto distance 0 from our training set (apart from one - at distance $0.05$).  The top compound by predicted potency has an expected potency of $6.85$ - but given it has minimum Tanimoto distance 0 from our training dataset, this means (by definition) that \textit{either it was in our training dataset, or it has identical fingerprint to a compound in our dataset}. Looking at the simple fit to potency covariance in Figure \ref{fig:cov}, this means that the uncertainty in potency is of the order of $0.15$ (the value of the y-intercept of the fit) \footnote{Note that we are using the fact that at Tanimoto distance 0 from an active, our model assumes that all compounds are actives, and thus the sigma from figure \ref{fig:cov} actually represents the sigma of the potency}.  This in turn implies that the probability that this compound has potency $>= 7.6$ is a 5-sigma event, i.e. something with probability less than one in one million.
+
+If we wish to choose the compounds with maxmimum likelihood of having potency greater than some target value, we need to estimate the uncertainty of our predictions as a function of the (minimum) distance of the compound from our training set.  Fortunately we have all the necessary information to do this at this point.  We simply calculate:
+
+\begin{equation}
+    Var(d) = Var{p(d)A(d) + (1-p(d))I}
+\end{equation}
+where: $d$ is the Tanimoto distance, $p(d)$ is the probability of a compound being active, $A(d)$ is the distribution of actives, and $I$ is the inactive level.  When we plot this - we find that the variance peaks at around Tanimoto distance $0.3$ from the training dataset.
+
+XXX ISIDRO - is it worth adding the picture from the notebook here? XXXX
+
+What we should in theory do at this point is the following: for any set of twenty compounds, calculate the likelihood that at least one of these compounds has potency greater or equal to our target value of $7.6$ - and choose that set of twenty.  To do this - one needs to use not only the distance of the selected compounds from our training set, but also the distance from each other (if we test the same compound twice - we're really only testing 19 compounds rather than twenty, and correspondingly lowering our chances of success.
+
+In practice however - this is too difficult.  The objective function has no nice analytic expression, and thus needs to be approximated stochastically (e.g. via a Monte Carlo approach).  The sample space is both very large ${N}\choose{20}$ - and discrete, and algorithms such as stochastic annealing work poorly (and slowly) when one can only approximate the objective function.
+
+Thankfully, in this case this isn't necessary (and there are heuristic methods, beyond the scope of this paper, to deal with the case when many similar compounds are in the test set).  If we simply choose the twenty compounds\textit{that individually are the most likely} to have potency $>= 7.6$ then...
+
 \begin{itemize}
-    \item Model the data in Figure \ref{fig:cov} by the function $0.15 + 2x/5$.
-    \item The variance of a potency estimate in isolation is then $0.3025 = 0.55^2$.  This is the number that appears on the main diagonal of the covariance matrix.
-    \item If two compounds have identical fingerprints (Tanimoto distance 0) then the value on the covariance matrix associated to them is $0.28 = 0.55^2 - 0.15^2$.
-    \item Two compounds with Tanimoto distance 1.0 have a covariance entry of 0 (they are completely independent of each other).
+    \item If $N=300000$, we find three target compounds (probability of getting at least one $0.0005$).
+    \item If $N=450000$, we find two target compounds (probabilty of getting at least one $0.00036$
+    \item We did not test beyond 450K.
 \end{itemize}
 
-
-Our objective function is to choose twenty compounds such that at least one is good (potency > 7.6 in particular).  However, there exists no good analytic formula for estimating the probability that a vector drawn from a multivariate normal distribution with arbitrary covariance matrix has at least one entry greater than some threshold.  Therefore we are forced to estimate our loss function (the negative of the probability that at least one compound chosen have activity $> 7.6$) using a Monte-Carlo approach.
-
-We perform a stochastic annealing search through the top 100 compounds by predicted potency from the original subset of 300008, to choose the set comprising the best 20 according to this loss function (with covariance boosted by a factor of two, which still seems to be an underestimate \footnote{When we boost our covariance by a factor of two, our loss function goes from -0.04 (i.e. a 4\% probability of finding something with potency > 7.6) to -0.23 (i.e. a 23\% chance).  Given that \textit{we do actually} at least one such compound, this seems correct.  This number would also correspond to a sigma of $0.8$ on potency predictions, which seems more reasonable than the baseline $0.55$}.  When we do this, in two separate runs, we on one occasion find two target compounds, on another one.  Most importantly, with variance boosted by a factor of $2$, the loss function applied to the the final set (with the target compound in) is lower than simply choosing the top twenty by predicted potency.  I.e. the algorithm finds value in diversifying its choices.  This can be seen from the final twenty picks (in one case, where it only found one target compound), in that it only chooses three compounds from the family in which it originally chose seven.
+This shows that if one takes the uncertainty of one's predictions into account and uses an appropriate objective function, the performance is vastly better than simply choosing the 'highest expected value' compounds.
 
 %-----------------------------------
 \section*{Conclusions}
