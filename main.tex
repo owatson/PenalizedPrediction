@@ -494,7 +494,7 @@ When we chose the top twenty compounds by predicted potency from a set of $80000
 If we wish to choose the compounds with maximum likelihood of having potency greater than some target value, we need to estimate the uncertainty of our predictions as a function of the (minimum) distance of the compound from our training set.  Fortunately we have all the necessary information to do this at this point. We simply calculate:
 
 \begin{equation}
-    Var(d) = Var{ p(d)A(d) + (1-p(d))I }
+    Var(d) = Var\left\{ p(d)A(d) + (1-p(d))I \right\}
 \end{equation}
 where: $d$ is the Tanimoto distance, $p(d)$ is the probability of a compound being active, $A(d)$ is the distribution of actives, and $I$ is the inactive level.  When we plot this, we find that the variance peaks at around Tanimoto distance $0.3$ from the training dataset (Figure \ref{fig:9}).
 
